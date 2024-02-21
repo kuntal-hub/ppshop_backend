@@ -17,6 +17,17 @@ app.use(express.static("public"));
 
 // import all routes
 
+import customerInfoRouter from "./routes/customerInfo.router.js";
+import entryRouter from "./routes/entry.router.js";
+import reportRouter from "./routes/report.router.js";
+import balanceRouter from "./routes/balance.router.js";
+
+// use routes
+app.use("/api/v1/customerInfo", customerInfoRouter);
+app.use("/api/v1/entry", entryRouter);
+app.use("/api/v1/report", reportRouter);
+app.use("/api/v1/balance", balanceRouter);
+
 app.use(errorHandler)
 
 export default app;
