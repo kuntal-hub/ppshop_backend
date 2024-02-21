@@ -4,10 +4,11 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponce } from "../utils/ApiResponce.js";
 import { Report } from "../models/report.model.js";
 import { Entry } from "../models/entry.model.js";
+import { Balance } from "../models/balance.model.js";
+import {BALANCE_ID} from "../constants.js"
 
 const createReport = asyncHandler(async (req, res) => {
     const {
-        total, 
         eId,
         fiveh = 0, 
         twoh = 0, 
@@ -22,19 +23,8 @@ const createReport = asyncHandler(async (req, res) => {
         throw new ApiError(400, "please provide valid entry id");
     }
 
-    if (!total || total < 0) {
-        throw new ApiError(400, "Please provide valid total amount");
-    }
-
-    const grandTotal = (fiveh*500) + (twoh*200) + (oneh*100) + (fifty*50) + (twenty*20) + (ten*10) + others;
-
-    if (grandTotal !== total) {
-        throw new ApiError(400, "Total amount and sum of all other amounts do not match");
-    }
-
     const report = await Report.create({
-        entry:new mongoose.Types.ObjectId(eId),
-        total:grandTotal,
+        entry: new mongoose.Types.ObjectId(eId),
         fiveh,
         twoh,
         oneh,
@@ -48,6 +38,22 @@ const createReport = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Unable to create report");
     }
 
+    const balance = await Balance.findById(BALANCE_ID);
+
+    if (!balance) {
+        throw new ApiError(500, "Unable to get balance");
+    }
+
+    balance.fiveh += fiveh;
+    balance.twoh += twoh;
+    balance.oneh += oneh;
+    balance.fifty += fifty;
+    balance.twenty += twenty;
+    balance.ten += ten;
+    balance.others += others;
+
+    await balance.save();
+
     return res
     .status(201)
     .json(new ApiResponce(201,report, "Report created successfully"));
@@ -56,8 +62,7 @@ const createReport = asyncHandler(async (req, res) => {
 
 const updateReport = asyncHandler(async (req, res) => {
     const { rId } = req.params;
-    const {
-        total, 
+    const { 
         fiveh = 0, 
         twoh = 0, 
         oneh = 0, 
@@ -71,15 +76,7 @@ const updateReport = asyncHandler(async (req, res) => {
         throw new ApiError(400, "please provide valid report id");
     }
 
-    if (!total || total < 0) {
-        throw new ApiError(400, "Please provide valid total amount");
-    }
-
     const grandTotal = (fiveh*500) + (twoh*200) + (oneh*100) + (fifty*50) + (twenty*20) + (ten*10) + others;
-
-    if (grandTotal !== total) {
-        throw new ApiError(400, "Total amount and sum of all other amounts do not match");
-    }
 
     const report = await Report.findById(rId);
 
@@ -95,20 +92,35 @@ const updateReport = asyncHandler(async (req, res) => {
         }
     }
 
-    const savedReport = await Report.findByIdAndUpdate(rId, {
-        total:grandTotal,
-        fiveh,
-        twoh,
-        oneh,
-        fifty,
-        twenty,
-        ten,
-        others,
-    }, {new:true});
+    report.fiveh = fiveh;
+    report.twoh = twoh;
+    report.oneh = oneh;
+    report.fifty = fifty;
+    report.twenty = twenty;
+    report.ten = ten;
+    report.others = others;
+
+    const savedReport = await report.save();
 
     if (!savedReport) {
         throw new ApiError(500, "Unable to update report");
     }
+
+    const balance = await Balance.findById(BALANCE_ID);
+
+    if (!balance) {
+        throw new ApiError(500, "Unable to get balance");
+    }
+
+    balance.fiveh += fiveh - report.fiveh;
+    balance.twoh += twoh - report.twoh;
+    balance.oneh += oneh - report.oneh;
+    balance.fifty += fifty - report.fifty;
+    balance.twenty += twenty - report.twenty;
+    balance.ten += ten - report.ten;
+    balance.others += others - report.others;
+
+    await balance.save();
 
     return res
     .status(200)

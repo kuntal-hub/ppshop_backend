@@ -38,4 +38,9 @@ const balanceSchema = new Schema({
     
 },{timestamps: true});
 
+balanceSchema.pre('save',function(next) {
+    this.total = (this.fiveh*500) + (this.twoh*200) + (this.oneh*100) + (this.fifty*50) + (this.twenty*20) + (this.ten*10) + this.others;
+    return next();
+});
+
 export const Balance = mongoose.model('Balance',balanceSchema);

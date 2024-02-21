@@ -4,7 +4,6 @@ import { ApiError } from "../utils/ApiError.js";
 import {ApiResponce} from "../utils/ApiResponce.js";
 import { Entry } from "../models/entry.model.js";
 import { Report } from "../models/report.model.js";
-import mongoose from "mongoose";
 
 const createCustomerInfo = asyncHandler(async (req, res) => {
 
