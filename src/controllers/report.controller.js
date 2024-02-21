@@ -92,20 +92,6 @@ const updateReport = asyncHandler(async (req, res) => {
         }
     }
 
-    report.fiveh = fiveh;
-    report.twoh = twoh;
-    report.oneh = oneh;
-    report.fifty = fifty;
-    report.twenty = twenty;
-    report.ten = ten;
-    report.others = others;
-
-    const savedReport = await report.save();
-
-    if (!savedReport) {
-        throw new ApiError(500, "Unable to update report");
-    }
-
     const balance = await Balance.findById(BALANCE_ID);
 
     if (!balance) {
@@ -120,7 +106,26 @@ const updateReport = asyncHandler(async (req, res) => {
     balance.ten += ten - report.ten;
     balance.others += others - report.others;
 
-    await balance.save();
+    const savedBalance = await balance.save();
+
+    if (!savedBalance) {
+        throw new ApiError(500, "Unable to update balance");
+    }
+
+    report.fiveh = fiveh;
+    report.twoh = twoh;
+    report.oneh = oneh;
+    report.fifty = fifty;
+    report.twenty = twenty;
+    report.ten = ten;
+    report.others = others;
+
+    const savedReport = await report.save();
+
+    if (!savedReport) {
+        throw new ApiError(500, "Unable to update report");
+    }
+
 
     return res
     .status(200)
