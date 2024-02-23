@@ -151,4 +151,65 @@ const findCustomer = asyncHandler(async (req, res) => {
     .json(new ApiResponce(200,customer, "Customer found successfully"))
 });
 
-export { createCustomerInfo, updateCustomerInfo, deleteCustomerInfo, findCustomer };
+const getAllCustomers = asyncHandler(async (req, res) => {
+    const {page=1,limit=20} = req.query;
+    const aggregate = CustomerInfo.aggregate([
+        {
+            $match:{}
+        },
+        {
+            $sort:{
+                createdAt:-1
+            }
+        }
+    ])
+
+    const customers = await CustomerInfo.aggregatePaginate(aggregate,{
+        page:parseInt(page),
+        limit:parseInt(limit),
+    })
+
+    if (!customers) {
+        throw new ApiError(500, "Something went wrong, please try again later");
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponce(200,customers, "Customers found successfully"))
+});
+
+const searchCustomer = asyncHandler(async (req, res) => {
+    const {page=1,limit=20,searchBy,search} = req.query;
+    const aggregate = CustomerInfo.aggregate([
+        {
+            $match:{[searchBy]:{$regex:search, $options: 'i'}}
+        },
+        {
+            $sort:{
+                createdAt:-1
+            }
+        }
+    ])
+
+    const customers = await CustomerInfo.aggregatePaginate(aggregate,{
+        page:parseInt(page),
+        limit:parseInt(limit),
+    })
+
+    if (!customers) {
+        throw new ApiError(500, "Something went wrong, please try again later");
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponce(200,customers, "Customers found successfully"))
+});
+
+export { 
+    createCustomerInfo, 
+    updateCustomerInfo, 
+    deleteCustomerInfo, 
+    findCustomer,
+    getAllCustomers,
+    searchCustomer,
+};

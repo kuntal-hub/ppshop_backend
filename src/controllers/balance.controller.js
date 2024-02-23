@@ -34,13 +34,13 @@ const updateBalance = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Unable to get balance");
     }
 
-    balance.fiveh = fiveh;
-    balance.twoh = twoh;
-    balance.oneh = oneh;
-    balance.fifty = fifty;
-    balance.twenty = twenty;
-    balance.ten = ten;
-    balance.others = others;
+    balance.fiveh = Number.parseInt(fiveh);
+    balance.twoh = Number.parseInt(twoh);
+    balance.oneh = Number.parseInt(oneh);
+    balance.fifty = Number.parseInt(fifty);
+    balance.twenty = Number.parseInt(twenty);
+    balance.ten = Number.parseInt(ten);
+    balance.others = Number.parseInt(others);
 
     const savedbalance = await balance.save();
 
