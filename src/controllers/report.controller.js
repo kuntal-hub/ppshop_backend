@@ -56,7 +56,7 @@ const createReport = asyncHandler(async (req, res) => {
 
     return res
     .status(201)
-    .json(new ApiResponce(201,report, "Report created successfully"));
+    .json(new ApiResponce(201,{report,balance}, "Report created successfully"));
 
 });
 
@@ -151,4 +151,58 @@ const deleteReport = asyncHandler(async (req, res) => {
     .json(new ApiResponce(200,{}, "Report deleted successfully"));
 });
 
-export { createReport, updateReport, deleteReport };
+const getAllReports = asyncHandler(async (req, res) => {
+
+    const { page=1, limit=20 } = req.query;
+    
+    const aggregate = Entry.aggregate([
+        {
+            $lookup:{
+                from:"customerinfos",
+                localField:"owner",
+                foreignField:"_id",
+                as:"owner",
+                pipeline:[
+                    {
+                        $project:{
+                            createdAt:0,
+                            updatedAt:0,
+                            __v:0,
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $lookup:{
+                from:"reports",
+                localField:"_id",
+                foreignField:"entry",
+                as:"report"
+            }
+        },
+        {
+            $addFields:{
+                owner:{$arrayElemAt:["$owner",0]},
+            }
+        },
+        {
+            $sort:{createdAt:-1}
+        }
+    ])
+
+    const reports = await Entry.aggregatePaginate(aggregate,{
+        page:Number.parseInt(page),
+        limit:Number.parseInt(limit),
+    });
+
+    if (!reports) {
+        throw new ApiError(404, "Reports not found");
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponce(200,reports, "Reports found"));
+});
+
+export { createReport, updateReport, deleteReport, getAllReports};

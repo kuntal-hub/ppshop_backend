@@ -143,7 +143,7 @@ const findCustomer = asyncHandler(async (req, res) => {
     const customer = await CustomerInfo.findOne({cId});
 
     if (!customer) {
-        throw new ApiError(404, "Customer not found");
+        throw new ApiError(404, "Customer not found!");
     }
 
     return res
