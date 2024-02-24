@@ -129,7 +129,7 @@ const updateReport = asyncHandler(async (req, res) => {
 
     return res
     .status(200)
-    .json(new ApiResponce(200,savedReport, "Report updated successfully"));
+    .json(new ApiResponce(200,{balance:savedBalance,report:savedReport}, "Report updated successfully"));
 });
 
 

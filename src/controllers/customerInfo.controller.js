@@ -205,6 +205,41 @@ const searchCustomer = asyncHandler(async (req, res) => {
     .json(new ApiResponce(200,customers, "Customers found successfully"))
 });
 
+const getCustomerByCId = asyncHandler(async (req,res)=>{
+    const {cId} = req.params;
+    const customer = await CustomerInfo.aggregate([
+        {
+            $match:{cId}
+        },
+        {
+            $lookup:{
+                from:"entries",
+                localField:"_id",
+                foreignField:"owner",
+                as:"entries",
+                pipeline:[
+                    {
+                        $lookup:{
+                            from:"reports",
+                            localField:"_id",
+                            foreignField:"entry",
+                            as:"report"
+                        }
+                    }
+                ]
+            }
+        }
+    ])
+
+    if(!customer || customer.length === 0){
+        throw new ApiError(404 ,"Customer Not Found");
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponce(200,customer[0],"Customer Found!"))
+})
+
 export { 
     createCustomerInfo, 
     updateCustomerInfo, 
@@ -212,4 +247,5 @@ export {
     findCustomer,
     getAllCustomers,
     searchCustomer,
+    getCustomerByCId,
 };
