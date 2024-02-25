@@ -49,10 +49,10 @@ const updateAccount = asyncHandler(async (req, res) => {
     }
 
     if(balance === undefined || balance === null || balance === "" || isNaN(balance)){
-        throw new ApiError(400, "Balance is required");
+        throw new ApiError(400, "Balance is required and must be a number");
     }
 
-    const account = await Account.findByIdAndUpdate(accountId,{balance},{new:true});
+    const account = await Account.findByIdAndUpdate(accountId,{balance:Number.parseInt(balance)},{new:true});
 
     if(!account){
         throw new ApiError(404, "Account not found");
