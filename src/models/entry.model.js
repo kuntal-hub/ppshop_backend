@@ -12,6 +12,10 @@ const entrySchema = new Schema({
         type:Number,
         required:true,
     },
+    from:{
+        type:String,
+        default:"cash",
+    }
 },{timestamps: true});
 
 entrySchema.plugin(mongooseAggregatePaginate);

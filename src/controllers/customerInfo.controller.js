@@ -207,37 +207,50 @@ const searchCustomer = asyncHandler(async (req, res) => {
 
 const getCustomerByCId = asyncHandler(async (req,res)=>{
     const {cId} = req.params;
-    const customer = await CustomerInfo.aggregate([
+    const {page=1,limit=20} = req.query;
+    
+    if(!cId){
+        throw new ApiError(400,"Please provide customer id")
+    }
+    
+    const customer = await CustomerInfo.findOne({cId});
+    
+    if(!customer){
+        throw new ApiError(404 ,"Customer Not Found");
+    }
+
+    const aggregate = Entry.aggregate([
         {
-            $match:{cId}
+            $match:{owner:customer._id}
         },
         {
             $lookup:{
-                from:"entries",
+                from:"reports",
                 localField:"_id",
-                foreignField:"owner",
-                as:"entries",
-                pipeline:[
-                    {
-                        $lookup:{
-                            from:"reports",
-                            localField:"_id",
-                            foreignField:"entry",
-                            as:"report"
-                        }
-                    }
-                ]
+                foreignField:"entry",
+                as:"report"
+            }
+        },
+        {
+            $sort:{
+                createdAt:-1
             }
         }
     ])
 
-    if(!customer || customer.length === 0){
-        throw new ApiError(404 ,"Customer Not Found");
-    }
+    const entries = await Entry.aggregatePaginate(aggregate,{
+        page:parseInt(page),
+        limit:parseInt(limit),
+    })
 
+    const resData = {
+        customer:customer,
+        entries:entries,
+    }
+    
     return res
     .status(200)
-    .json(new ApiResponce(200,customer[0],"Customer Found!"))
+    .json(new ApiResponce(200,resData,"Customer Found!"))
 })
 
 export { 

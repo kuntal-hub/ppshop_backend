@@ -5,19 +5,43 @@ import { CustomerInfo } from "../models/customerInfo.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponce } from "../utils/ApiResponce.js";
 import { Report } from "../models/report.model.js";
+import { Account } from "../models/account.model.js";
 
 const createEntry = asyncHandler(async (req, res) => {
-    const { customer_id, amount, cId, name, aadhar, phone, address } = req.body;
+    const { customer_id, amount, cId, name, aadhar, phone, address, accountId="cash" } = req.body;
 
     if(!amount) throw new ApiError(400, "Please provide amount");
 
     let entry;
 
     const createEntryAndReport = async (owner,amount) => {
-        entry = await Entry.create({
-            amount:Number.parseInt(amount),
-            owner:owner,
-        });
+        
+        if (accountId !== "cash") {
+            const account = await Account.findById(accountId);
+            
+            if (!account) {
+                throw new ApiError(404, "Account not found");
+            }
+            
+            account.balance -= Number.parseInt(amount);
+
+            if (account.balance < 0) {
+                throw new ApiError(400, "Insufficient balance in account");
+            }
+            
+            await account.save();
+            
+            entry = await Entry.create({
+                amount:Number.parseInt(amount),
+                owner:owner,
+                from:account.name,
+            });
+        } else {
+            entry = await Entry.create({
+                amount:Number.parseInt(amount),
+                owner:owner,
+            });
+        }
 
         if (!entry) {
             throw new ApiError(500, "Unable to create entry");
@@ -106,4 +130,12 @@ const deleteEntry = asyncHandler(async (req, res) => {
     .json(new ApiResponce(200,{}, "Entry deleted successfully"));
 });
 
-export { createEntry, deleteEntry };
+const deleteAllEntries = asyncHandler(async (req, res) => {
+    await Entry.deleteMany({});
+    await Report.deleteMany({});
+    return res
+    .status(200)
+    .json(new ApiResponce(200,{}, "All entries deleted successfully"));
+});
+
+export { createEntry, deleteEntry, deleteAllEntries};
