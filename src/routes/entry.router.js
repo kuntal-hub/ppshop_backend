@@ -9,6 +9,6 @@ const router = Router();
 
 router.route("/create").post(createEntry);
 router.route("/delete/:eId").delete(deleteEntry);
-router.route("/delete/all").delete(deleteAllEntries);
+router.route("/alldelete").delete(deleteAllEntries);
 
 export default router;
