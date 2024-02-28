@@ -138,4 +138,148 @@ const deleteAllEntries = asyncHandler(async (req, res) => {
     .json(new ApiResponce(200,{}, "All entries deleted successfully"));
 });
 
-export { createEntry, deleteEntry, deleteAllEntries};
+const getEntriesByDate = asyncHandler(async (req, res) => {
+    const { date } = req.params;
+
+    const {page=1,limit=24} = req.query;
+
+    if (!date) {
+        throw new ApiError(400, "Please provide date");
+    }
+
+    const targetDate = new Date(date); // The date you want to find documents for
+
+    // Define the start and end of the target date
+    const startDate = new Date(targetDate);
+    startDate.setHours(0, 0, 0, 0); // Set time to beginning of the day
+    const endDate = new Date(targetDate);
+    endDate.setHours(23, 59, 59, 999); 
+
+    const entries = await Entry.aggregate([
+        {
+            $match: {
+                createdAt: {
+                    $gte: startDate,
+                    $lt: endDate
+                }
+            }
+        },
+        {
+            $lookup:{
+                from:"customerinfos",
+                localField:"owner",
+                foreignField:"_id",
+                as:"owner",
+                pipeline:[
+                    {
+                        $project:{
+                            createdAt:0,
+                            updatedAt:0,
+                            __v:0,
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $lookup:{
+                from:"reports",
+                localField:"_id",
+                foreignField:"entry",
+                as:"report"
+            }
+        },
+        {
+            $addFields:{
+                owner:{$arrayElemAt:["$owner",0]},
+            }
+        },
+        {
+            $sort:{createdAt:-1}
+        },
+        {
+            $skip:parseInt((page-1)*limit)
+        },
+        {
+            $limit:parseInt(limit)
+        }
+    ]);
+
+    return res
+    .status(200)
+    .json(new ApiResponce(200,entries, "Entries fetched successfully"));
+});
+
+const getAllEntriesByOwnerId = asyncHandler(async (req, res) => {
+    const { cId } = req.params;
+
+    const {page=1,limit=24} = req.query;
+
+    if (!cId) {
+        throw new ApiError(400, "Please provide customer id");
+    }
+
+    const customer = await CustomerInfo.findOne({cId});
+
+    if (!customer) {
+        throw new ApiError(404, "Customer not found");
+    }
+
+    const entries = await Entry.aggregate([
+        {
+            $match: {
+                owner: customer._id
+            }
+        },
+        {
+            $lookup:{
+                from:"customerinfos",
+                localField:"owner",
+                foreignField:"_id",
+                as:"owner",
+                pipeline:[
+                    {
+                        $project:{
+                            createdAt:0,
+                            updatedAt:0,
+                            __v:0,
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $lookup:{
+                from:"reports",
+                localField:"_id",
+                foreignField:"entry",
+                as:"report"
+            }
+        },
+        {
+            $addFields:{
+                owner:{$arrayElemAt:["$owner",0]},
+            }
+        },
+        {
+            $sort:{createdAt:-1}
+        },
+        {
+            $skip:parseInt((page-1)*limit)
+        },
+        {
+            $limit:parseInt(limit)
+        }
+    ]);
+
+
+    if (!entries) {
+        throw new ApiError(404, "Entries not found");
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponce(200,entries, "Entries fetched successfully"));
+})
+
+export { createEntry, deleteEntry, deleteAllEntries, getEntriesByDate, getAllEntriesByOwnerId};
