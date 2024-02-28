@@ -15,6 +15,10 @@ const entrySchema = new Schema({
     from:{
         type:String,
         default:"cash",
+    },
+    remarks:{
+        type:String,
+        default:"",
     }
 },{timestamps: true});
 

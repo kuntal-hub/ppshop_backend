@@ -19,12 +19,14 @@ const createReport = asyncHandler(async (req, res) => {
         others = 0,
     } = req.body;
 
-    if (!eId || !mongoose.isValidObjectId(eId)) {
-        throw new ApiError(400, "please provide valid entry id");
+    const entry = await Entry.findById(eId);
+
+    if (!entry) {
+        throw new ApiError(404, "Entry not found");
     }
 
     const report = await Report.create({
-        entry: new mongoose.Types.ObjectId(eId),
+        entry: entry._id,
         fiveh,
         twoh,
         oneh,
@@ -76,7 +78,7 @@ const updateReport = asyncHandler(async (req, res) => {
         throw new ApiError(400, "please provide valid report id");
     }
 
-    const grandTotal = (fiveh*500) + (twoh*200) + (oneh*100) + (fifty*50) + (twenty*20) + (ten*10) + others;
+    // const grandTotal = (fiveh*500) + (twoh*200) + (oneh*100) + (fifty*50) + (twenty*20) + (ten*10) + others;
 
     const report = await Report.findById(rId);
 
@@ -84,13 +86,13 @@ const updateReport = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Report not found");
     }
 
-    if (report.total !== grandTotal) {
-        const entry = await Entry.findOneAndUpdate({_id:report.entry}, {amount:grandTotal}, {new:true});
+    // if (report.total !== grandTotal) {
+    //     const entry = await Entry.findOneAndUpdate({_id:report.entry}, {amount:grandTotal}, {new:true});
 
-        if (!entry) {
-            throw new ApiError(500, "Unable to update amount");
-        }
-    }
+    //     if (!entry) {
+    //         throw new ApiError(500, "Unable to update amount");
+    //     }
+    // }
 
     const balance = await Balance.findById(BALANCE_ID);
 

@@ -28,7 +28,13 @@ const createAccount = asyncHandler(async (req, res) => {
 })
 
 const getAccounts = asyncHandler(async (req, res) => {
-    const accounts = await Account.find();
+    const accounts = await Account.aggregate([
+        {
+            $sort:{
+                createdAt:1
+            }
+        }
+    ]);
 
     if(!accounts){
         throw new ApiError(404, "No accounts found");

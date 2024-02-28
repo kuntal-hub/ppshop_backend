@@ -8,7 +8,7 @@ import { Report } from "../models/report.model.js";
 import { Account } from "../models/account.model.js";
 
 const createEntry = asyncHandler(async (req, res) => {
-    const { customer_id, amount, cId, name, aadhar, phone, address, accountId="cash" } = req.body;
+    const { customer_id, amount, cId, name, aadhar, phone, address, accountId="cash", remarks="" } = req.body;
 
     if(!amount) throw new ApiError(400, "Please provide amount");
 
@@ -23,7 +23,7 @@ const createEntry = asyncHandler(async (req, res) => {
                 throw new ApiError(404, "Account not found");
             }
             
-            account.balance -= Number.parseInt(amount);
+            account.balance += Number.parseInt(amount);
 
             if (account.balance < 0) {
                 throw new ApiError(400, "Insufficient balance in account");
@@ -35,11 +35,13 @@ const createEntry = asyncHandler(async (req, res) => {
                 amount:Number.parseInt(amount),
                 owner:owner,
                 from:account.name,
+                remarks:remarks,
             });
         } else {
             entry = await Entry.create({
                 amount:Number.parseInt(amount),
                 owner:owner,
+                remarks:remarks,
             });
         }
 
