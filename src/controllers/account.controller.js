@@ -9,6 +9,10 @@ const createAccount = asyncHandler(async (req, res) => {
     if(!name){
         throw new ApiError(400, "Name is required");
     }
+
+    if (name.toLowerCase().trim() === "cash") {
+        throw new ApiError(400, "Account Name cannot be cash");
+    }
     
     const accountExist = await Account.findOne({name});
     
