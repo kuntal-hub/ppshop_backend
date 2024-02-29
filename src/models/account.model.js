@@ -5,8 +5,9 @@ const accountSchema = new Schema({
     name:{
         type:String,
         required:true,
-        index:"text",
+        index:true,
         trim:true,
+        unique:true,
     },
     balance:{
         type:Number,

@@ -207,9 +207,26 @@ const getEntriesByDate = asyncHandler(async (req, res) => {
         }
     ]);
 
+    const summary = await Entry.aggregate([
+        {
+            $match: {
+                createdAt: {
+                    $gte: startDate,
+                    $lt: endDate
+                }
+            }
+        },
+        {
+            $group:{
+                _id:{type:"$from"},
+                total:{$sum:"$amount"}
+            }
+        }
+    ]);
+    
     return res
     .status(200)
-    .json(new ApiResponce(200,entries, "Entries fetched successfully"));
+    .json(new ApiResponce(200,{entries,summary}, "Entries fetched successfully"));
 });
 
 const getAllEntriesByOwnerId = asyncHandler(async (req, res) => {
@@ -284,4 +301,97 @@ const getAllEntriesByOwnerId = asyncHandler(async (req, res) => {
     .json(new ApiResponce(200,entries, "Entries fetched successfully"));
 })
 
-export { createEntry, deleteEntry, deleteAllEntries, getEntriesByDate, getAllEntriesByOwnerId};
+const getAllEntriesByAccountName = asyncHandler(async (req, res) => {
+    const { accountName } = req.params;
+
+    const {page=1,limit=24,fromDate, toDate} = req.query;
+
+    if (!fromDate || !toDate) {
+        throw new ApiError(400, "Please provide from date and to date");
+    }
+
+    if (!accountName) {
+        throw new ApiError(400, "Please provide account name");
+    }
+
+    if (accountName !== "cash") {
+        const account = await Account.findOne({name:accountName});
+
+        if (!account) {
+            throw new ApiError(404, "Account not found");
+        }
+    }
+
+    const targetFormDate = new Date(fromDate);
+    const targetToDate = new Date(toDate);
+
+    // Define the start and end of the target date
+    const startDate = new Date(targetFormDate);
+    startDate.setHours(0, 0, 0, 0); // Set time to beginning of the day
+    const endDate = new Date(targetToDate);
+    endDate.setHours(23, 59, 59, 999); 
+
+    const entries = await Entry.aggregate([
+        {
+            $match: {
+                createdAt: {
+                    $gte: startDate,
+                    $lt: endDate
+                },
+                from:accountName
+            }
+        },
+        {
+            $lookup:{
+                from:"customerinfos",
+                localField:"owner",
+                foreignField:"_id",
+                as:"owner",
+                pipeline:[
+                    {
+                        $project:{
+                            createdAt:0,
+                            updatedAt:0,
+                            __v:0,
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $lookup:{
+                from:"reports",
+                localField:"_id",
+                foreignField:"entry",
+                as:"report"
+            }
+        },
+        {
+            $addFields:{
+                owner:{$arrayElemAt:["$owner",0]},
+            }
+        },
+        {
+            $sort:{createdAt:-1}
+        },
+        {
+            $skip:parseInt((page-1)*limit)
+        },
+        {
+            $limit:parseInt(limit)
+        }
+    ]);
+    
+    return res
+    .status(200)
+    .json(new ApiResponce(200,entries, "Entries fetched successfully"));
+});
+
+export { 
+    createEntry, 
+    deleteEntry, 
+    deleteAllEntries, 
+    getEntriesByDate, 
+    getAllEntriesByOwnerId,
+    getAllEntriesByAccountName,
+};
