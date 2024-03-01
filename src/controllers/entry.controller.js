@@ -109,6 +109,10 @@ const createEntry = asyncHandler(async (req, res) => {
 
 
 const deleteEntry = asyncHandler(async (req, res) => {
+    // check user is admin or not
+    if (req.user?.role !== "admin") {
+        throw new ApiError(403,"You are not authorized to perform this action");
+    }
     const { eId } = req.params;
 
     if (!eId) {
@@ -133,6 +137,10 @@ const deleteEntry = asyncHandler(async (req, res) => {
 });
 
 const deleteAllEntries = asyncHandler(async (req, res) => {
+    // check user is admin or not
+    if (req.user?.role !== "admin") {
+        throw new ApiError(403,"You are not authorized to perform this action");
+    }
     await Entry.deleteMany({});
     await Report.deleteMany({});
     return res
@@ -302,6 +310,10 @@ const getAllEntriesByOwnerId = asyncHandler(async (req, res) => {
 })
 
 const getAllEntriesByAccountName = asyncHandler(async (req, res) => {
+    // check user is admin or not
+    if (req.user?.role !== "admin") {
+        throw new ApiError(403,"You are not authorized to perform this action");
+    }
     const { accountName } = req.params;
 
     const {page=1,limit=24,fromDate, toDate} = req.query;

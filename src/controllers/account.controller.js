@@ -4,6 +4,11 @@ import { ApiResponce } from "../utils/ApiResponce.js";
 import { Account } from "../models/account.model.js";
 
 const createAccount = asyncHandler(async (req, res) => {
+    // check user is admin or not
+    if (req.user?.role !== "admin") {
+        throw new ApiError(403,"You are not authorized to perform this action");
+    }
+
     const {name,balance=0} = req.body;
 
     if(!name){
@@ -50,6 +55,10 @@ const getAccounts = asyncHandler(async (req, res) => {
 });
 
 const updateAccount = asyncHandler(async (req, res) => {
+    // check user is admin or not
+    if (req.user?.role !== "admin") {
+        throw new ApiError(403,"You are not authorized to perform this action");
+    }
     const {balance} = req.body;
 
     const {accountId} = req.params;
@@ -74,6 +83,10 @@ const updateAccount = asyncHandler(async (req, res) => {
 });
 
 const deleteAccount = asyncHandler(async (req, res) => {
+    // check user is admin or not
+    if (req.user?.role !== "admin") {
+        throw new ApiError(403,"You are not authorized to perform this action");
+    }
     const {accountId} = req.params;
 
     if(!accountId){
@@ -95,4 +108,5 @@ export {
     createAccount, 
     getAccounts, 
     updateAccount, 
-    deleteAccount};
+    deleteAccount
+};

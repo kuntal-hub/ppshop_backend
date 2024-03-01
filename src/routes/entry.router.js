@@ -7,8 +7,11 @@ import {
     getAllEntriesByOwnerId,
     getAllEntriesByAccountName,
 } from "../controllers/entry.controller.js";
+import {verifyJWT} from "../middlewares/auth.middleware.js";
 
 const router = Router();
+
+router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 
 router.route("/create").post(createEntry);
 router.route("/delete/:eId").delete(deleteEntry);

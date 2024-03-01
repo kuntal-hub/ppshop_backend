@@ -22,8 +22,10 @@ import entryRouter from "./routes/entry.router.js";
 import reportRouter from "./routes/report.router.js";
 import balanceRouter from "./routes/balance.router.js";
 import accountRouter from "./routes/account.router.js";
+import userRouter from "./routes/user.router.js";
 
 // use routes
+app.use("/api/v1/user", userRouter);
 app.use("/api/v1/customerInfo", customerInfoRouter);
 app.use("/api/v1/entry", entryRouter);
 app.use("/api/v1/report", reportRouter);

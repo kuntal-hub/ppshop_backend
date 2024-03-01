@@ -17,6 +17,10 @@ import {BALANCE_ID} from "../constants.js";
 // });
 
 const updateBalance = asyncHandler(async (req, res) => {
+    // check user is admin or not
+    if (req.user?.role !== "admin") {
+        throw new ApiError(403,"You are not authorized to perform this action");
+    }
 
     const {
         fiveh = 0, 

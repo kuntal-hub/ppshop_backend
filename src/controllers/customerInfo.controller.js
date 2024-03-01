@@ -103,6 +103,10 @@ const updateCustomerInfo = asyncHandler(async (req, res) => {
 });
 
 const deleteCustomerInfo = asyncHandler(async (req, res) => {
+    // check user is admin or not
+    if (req.user?.role !== "admin") {
+        throw new ApiError(403,"You are not authorized to perform this action");
+    }
     const {cId} = req.params;
 
     if (!cId) {

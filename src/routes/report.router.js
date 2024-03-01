@@ -5,8 +5,11 @@ import {
     deleteReport,
     getAllReports,
 } from "../controllers/report.controller.js";
+import {verifyJWT} from "../middlewares/auth.middleware.js";
 
 const router = Router();
+
+router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 
 router.route("/create").post(createReport);
 router.route("/update/:rId").patch(updateReport);

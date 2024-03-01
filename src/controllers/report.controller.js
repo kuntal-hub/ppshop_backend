@@ -136,6 +136,10 @@ const updateReport = asyncHandler(async (req, res) => {
 
 
 const deleteReport = asyncHandler(async (req, res) => {
+    // check user is admin or not
+    if (req.user?.role !== "admin") {
+        throw new ApiError(403,"You are not authorized to perform this action");
+    }
     const { rId } = req.params;
 
     if (!rId || !mongoose.isValidObjectId(rId)) {

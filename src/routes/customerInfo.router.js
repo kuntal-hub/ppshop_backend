@@ -8,8 +8,11 @@ import {
     searchCustomer,
     getCustomerByCId,
 } from "../controllers/customerInfo.controller.js";
+import {verifyJWT} from "../middlewares/auth.middleware.js";
 
 const router = Router();
+
+router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 
 router.route("/create").post(createCustomerInfo);
 router.route("/update/:cId").patch(updateCustomerInfo);
