@@ -68,7 +68,7 @@ const createAdmin = asyncHandler(async (req, res) => {
     // send response
     return res
     .status(201)
-    .json(new ApiResponce(201,newUser,"Admin created successfully"));
+    .json(new ApiResponce(201,user,"Admin created successfully"));
 });
 
 
@@ -113,7 +113,7 @@ const createUser = asyncHandler(async (req, res) => {
     // send response
     return res
     .status(201)
-    .json(new ApiResponce(201,newUser,"User created successfully"));
+    .json(new ApiResponce(201,user,"User created successfully"));
 })
 
 const login = asyncHandler(async (req, res) => {
