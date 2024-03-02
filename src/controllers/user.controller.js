@@ -328,7 +328,7 @@ const changeEmail = asyncHandler(async(req,res)=>{
     // send response
     return res
     .status(200)
-    .json(new ApiResponce(200,{},"Email changed successfully"));
+    .json(new ApiResponce(200,user,"Email changed successfully"));
 })
 
 
@@ -367,7 +367,7 @@ const changeUsername = asyncHandler(async(req,res)=>{
     // send response
     return res
     .status(200)
-    .json(new ApiResponce(200,{},"Username changed successfully"));
+    .json(new ApiResponce(200,user,"Username changed successfully"));
 })
 
 const deleteUser = asyncHandler(async(req,res)=>{
@@ -379,7 +379,7 @@ const deleteUser = asyncHandler(async(req,res)=>{
     const {username} = req.params;
     // check if username exists or not
     if (!username) {
-        throw new ApiError(400,"User id is required");
+        throw new ApiError(400,"Username is required");
     }
     
     if (username === req.user.username) {
