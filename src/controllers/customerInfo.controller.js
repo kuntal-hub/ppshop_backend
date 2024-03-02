@@ -9,23 +9,11 @@ const createCustomerInfo = asyncHandler(async (req, res) => {
 
     const {name, cId, aadhar, address, phone} = req.body;
 
-    if (!name || !cId || !aadhar || !phone) {
+    if (!name || !cId) {
         throw new ApiError(400, "Please provide all the required fields");
     }
 
-    if (cId.length < 4) {
-        throw new ApiError(400, "id should be atleast 4 characters long");
-    }
-
-    if (aadhar.length < 12 || isNaN(aadhar)) {
-        throw new ApiError(400, "Invalid aadhar number");
-    }
-
-    if (phone.length < 10 ) {
-        throw new ApiError(400, "Invalid phone number");
-    }
-
-    const customerExists = await CustomerInfo.findOne({$or: [{cId}, {aadhar}]});
+    const customerExists = await CustomerInfo.findOne({cId:cId});
 
     if (customerExists) {
         throw new ApiError(400, "Customer with same customer id or aadhar number already exists");
@@ -34,9 +22,9 @@ const createCustomerInfo = asyncHandler(async (req, res) => {
     const customer = await CustomerInfo.create({
         name,
         cId,
-        aadhar,
+        aadhar:aadhar || "",
         address: address || "",
-        phone,
+        phone: phone || "",
     })
 
     if (!customer) {
@@ -57,10 +45,6 @@ const updateCustomerInfo = asyncHandler(async (req, res) => {
             throw new ApiError(400, "Please provide customer id");
         }
     
-        if (!name || !aadhar || !phone || !newCId) {
-            throw new ApiError(400, "Please provide all the required fields")
-        }
-    
         const customer = await CustomerInfo.findOne({cId});
     
         if (!customer) {
@@ -68,27 +52,12 @@ const updateCustomerInfo = asyncHandler(async (req, res) => {
         }
 
         if (newCId && newCId !== cId) {
-            if (newCId.length < 4) {
-                throw new ApiError(400, "Invalid customer id");
-            }
             const customerExists = await CustomerInfo.findOne({cId: newCId});
             if (customerExists) {
                 throw new ApiError(400, "Customer with same customer id already exists");
             }
         }
 
-        if (aadhar && aadhar !== customer.aadhar) {
-            if (aadhar.length < 12 || isNaN(aadhar)) {
-                throw new ApiError(400, "Invalid aadhar number");
-            }
-
-            const customerExists = await CustomerInfo.findOne({aadhar: aadhar});
-
-            if (customerExists && customerExists.cId !== cId) {
-                throw new ApiError(400, "Customer with same aadhar number already exists");
-            }
-        }
-    
         customer.name = name || customer.name;
         customer.cId = newCId || customer.cId;
         customer.aadhar = aadhar || customer.aadhar;

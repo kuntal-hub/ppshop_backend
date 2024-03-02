@@ -11,7 +11,6 @@ const customerInfoSchema = new Schema({
     },
     cId:{ // customer id
         type:String,
-        minLength:4,
         unique:true,
         required:[true,"customer Id is required"],
         trim:true,
@@ -19,9 +18,6 @@ const customerInfoSchema = new Schema({
     },
     aadhar:{
         type:String,
-        unique:true,
-        minLength:12,
-        required:[true,"Aadhar number is required"],
         trim:true,
         index:true
     },
@@ -31,8 +27,6 @@ const customerInfoSchema = new Schema({
     },
     phone:{
         type:String,
-        minLength:10,
-        required:[true,"Phone number is required"],
         trim:true
     },
 },{timestamps: true});

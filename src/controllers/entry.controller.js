@@ -62,23 +62,11 @@ const createEntry = asyncHandler(async (req, res) => {
 
     if (!customer_id ) {
 
-        if (!cId  || !name || !aadhar || !phone) {
+        if (!cId  || !name) {
             throw new ApiError(400, "Please provide all the required fields");
         }
-
-        if (cId.length < 4) {
-            throw new ApiError(400, "id should be atleast 4 characters long");
-        }
     
-        if (aadhar.length < 12 || isNaN(aadhar)) {
-            throw new ApiError(400, "Invalid aadhar number");
-        }
-
-        if (phone.length < 10 ) {
-            throw new ApiError(400, "Invalid phone number");
-        }
-    
-        const customerExists = await CustomerInfo.findOne({$or: [{cId}, {aadhar}]});
+        const customerExists = await CustomerInfo.findOne({cId:cId});
     
         if (customerExists) {
             throw new ApiError(400, "Customer with same customer id or aadhar number already exists");
@@ -87,9 +75,9 @@ const createEntry = asyncHandler(async (req, res) => {
         const customer = await CustomerInfo.create({
             name:name,
             cId:cId,
-            aadhar:aadhar,
+            aadhar:aadhar||"",
             address: address || "",
-            phone:phone,
+            phone:phone||"",
         })
     
         if (!customer) {
