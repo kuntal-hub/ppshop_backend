@@ -19,6 +19,9 @@ const entrySchema = new Schema({
     remarks:{
         type:String,
         default:"",
+    },
+    ob:{
+        type:Number,
     }
 },{timestamps: true});
 

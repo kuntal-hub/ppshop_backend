@@ -6,6 +6,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponce } from "../utils/ApiResponce.js";
 import { Report } from "../models/report.model.js";
 import { Account } from "../models/account.model.js";
+import { Balance } from "../models/balance.model.js";
+import {BALANCE_ID} from "../constants.js";
 
 const createEntry = asyncHandler(async (req, res) => {
     const { customer_id, amount, cId, name, aadhar, phone, address, accountId="cash", remarks="" } = req.body;
@@ -22,7 +24,7 @@ const createEntry = asyncHandler(async (req, res) => {
             if (!account) {
                 throw new ApiError(404, "Account not found");
             }
-            
+            const accountBalance = account.balance;
             account.balance += Number.parseInt(amount);
 
             if (account.balance < 0) {
@@ -36,12 +38,20 @@ const createEntry = asyncHandler(async (req, res) => {
                 owner:owner,
                 from:account.name,
                 remarks:remarks,
+                ob:Number.parseInt(accountBalance),
             });
         } else {
+            const balance = await Balance.findById(BALANCE_ID);
+
+            if (!balance) {
+                throw new ApiError(500, "Unable to get balance");
+            }
+            
             entry = await Entry.create({
                 amount:Number.parseInt(amount),
                 owner:owner,
                 remarks:remarks,
+                ob:balance.total,
             });
         }
 
@@ -123,11 +133,24 @@ const deleteEntry = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid object id");
     }
 
-    const entry = await Entry.findByIdAndDelete(eId);
+    const entry = await Entry.findById(eId);
 
     if (!entry) {
         throw new ApiError(404, "Entry not found");
     }
+
+    if (entry.from !== "cash") {
+        const account = await Account.findOne({name:entry.from});
+
+        if (!account) {
+            throw new ApiError(404, "Account not found");
+        }
+        account.balance -= entry.amount;
+        await account.save();
+        
+    }
+
+    await Entry.findByIdAndDelete(eId);
 
     await Report.deleteOne({entry:entry._id});
 
@@ -226,8 +249,34 @@ const getEntriesByDate = asyncHandler(async (req, res) => {
         },
         {
             $group:{
-                _id:{type:"$from"},
+                _id:"$from",
                 total:{$sum:"$amount"}
+            }
+        },
+        {
+            $lookup:{
+                from:"accounts",
+                localField:"_id",
+                foreignField:"name",
+                as:"account"
+            }
+        },
+        {
+            $addFields:{
+                account:{$arrayElemAt:["$account",0]},
+            }
+        },
+        {
+            $addFields:{
+                ob:{
+                    $subtract:["$account.balance","$total"]
+                },
+                cb:"$account.balance"
+            }
+        },
+        {
+            $project:{
+                account:0
             }
         }
     ]);
