@@ -37,13 +37,65 @@ const createAccount = asyncHandler(async (req, res) => {
 })
 
 const getAccounts = asyncHandler(async (req, res) => {
+    const targetDate = new Date(); // The date you want to find documents for
+
+    // Define the start and end of the target date
+    const startDate = new Date(targetDate);
+    startDate.setHours(0, 0, 0, 0); // Set time to beginning of the day
+    const endDate = new Date(targetDate);
+    endDate.setHours(23, 59, 59, 999); 
+
     const accounts = await Account.aggregate([
         {
             $sort:{
                 createdAt:1
             }
+        },
+        {
+            $lookup:{
+                from:"entries",
+                localField:"name",
+                foreignField:"from",
+                as:"entries",
+                pipeline:[
+                    {
+                        $match:{
+                            createdAt:{
+                                $gte:startDate,
+                                $lte:endDate
+                            }
+                        }
+                    },
+                    {
+                        $sort:{
+                            createdAt:1
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $addFields:{
+                totalTurnover:{
+                    $sum:"$entries.amount"
+                },
+                firstEntry:{
+                    $arrayElemAt:["$entries",0]
+                },
+            }
+        },
+        {
+            $project:{
+                name:1,
+                balance:1,
+                totalTurnover:1,
+                firstEntry:1
+            }
         }
     ]);
+
+    console.log(accounts)
+
 
     if(!accounts){
         throw new ApiError(404, "No accounts found");
