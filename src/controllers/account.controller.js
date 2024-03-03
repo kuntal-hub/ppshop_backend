@@ -83,7 +83,7 @@ const getAccounts = asyncHandler(async (req, res) => {
                     $arrayElemAt:["$entries",0]
                 },
             }
-        },
+        },        
         {
             $project:{
                 name:1,
@@ -93,9 +93,6 @@ const getAccounts = asyncHandler(async (req, res) => {
             }
         }
     ]);
-
-    console.log(accounts)
-
 
     if(!accounts){
         throw new ApiError(404, "No accounts found");
