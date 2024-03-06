@@ -1,6 +1,6 @@
 import { Router } from "express";
 import {
-    createAdmin,
+    //createAdmin,
     createUser,
     login,
     logoutUser,
@@ -17,7 +17,7 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.route("/createAdmin").post(createAdmin);
+//router.route("/createAdmin").post(createAdmin);
 router.route("/createUser").post(verifyJWT,createUser);
 router.route("/login").post(login);
 router.route("/logout").post(verifyJWT,logoutUser);
